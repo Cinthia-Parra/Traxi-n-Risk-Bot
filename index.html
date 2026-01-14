@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Traxión | Risk Bot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <div class="title">Traxión · Risk Bot</div>
+          <div class="subtitle">Analista explicable de riesgo de abandono</div>
+        </div>
+      </div>
+      <button id="resetBtn" class="ghost">Reiniciar</button>
+    </header>
+
+    <section class="chat">
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <form id="chatForm" class="composer" autocomplete="off">
+        <input id="chatInput" class="input" placeholder="Escribe tu respuesta…" />
+        <button class="send" type="submit">Enviar</button>
+      </form>
+    </section>
+
+    <footer class="hint">
+      Tip: Responde con números cuando aplique. Ej: <code>72</code>, <code>-20</code>, <code>sí</code>/<code>no</code>.
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
