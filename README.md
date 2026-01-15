@@ -19,6 +19,7 @@ El agente evalúa el riesgo mediante una matriz de criticidad basada en señales
 
 ### 🔴 Riesgo Alto
 ![Ejemplo de estado crítico](./assets/screenshots/state_red.jpg)
+
 *Se activa con: ≥2 señales Rojas O (1 Roja + ≥2 Amarillas).*
 * **R1**: Tickets abiertos sin resolución (2 o más).
 * **R2**: Inconsistencia recurrente en pagos (2 o más retrasos).
