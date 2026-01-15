@@ -1,5 +1,10 @@
 # Traxión Risk Bot - Customer Health Agent
 
+## Demo en Vivo
+Puedes probar el prototipo interactivo aquí: 
+[**Abrir Traxión Risk Bot**](https://cinthia-parra.github.io/Traxi-n-Risk-Bot/)
+
+
 ## Descripción del Proyecto
 Este sistema fue desarrollado como una solución estratégica para el **Eje 2: Detección temprana de clientes en riesgo (Customer Health)** de la Hackatón Bécalos Traxión Tech 2025.
 
