@@ -10,6 +10,7 @@
   --text: #ffffff;
   --muted: #c0bf83;
   --muted2: #818159;
+  --mutedM: #747405;
   --border: rgba(255, 255, 255, 0.08);
   --me: var(--traxion-lime);
   --bot: var(--traxion-gray);
@@ -108,7 +109,7 @@ body {
 .msg {
   max-width: 78%;
   padding: 12px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--mutedM);
   border-radius: 16px;
   line-height: 1.35;
   white-space: pre-wrap;
