@@ -186,6 +186,23 @@ code {
   border-radius: 8px;
   border: 1px solid var(--traxion-lime-glow);
 }
+
+/* Colores de Semáforo de Riesgo */
+.msg.risk-alto {
+  border: 2px solid #ff4444;
+  background: rgba(255, 68, 68, 0.15);
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.2);
+}
+
+.msg.risk-medio {
+  border: 2px solid #ffbb33;
+  background: rgba(255, 187, 51, 0.15);
+}
+
+.msg.risk-bajo {
+  border: 2px solid var(--traxion-lime);
+  background: rgba(212, 232, 21, 0.1);
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .page { padding: 10px; gap: 10px; }

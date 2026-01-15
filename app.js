@@ -8,7 +8,6 @@ const state = {
   data: {}
 };
 
-// Preguntas (incluye 1 extra: tickets mes anterior para poder evaluar A1)
 const questions = [
   { key: "tipoCliente", prompt: "Tipo de cliente: Logística / Transporte de personal / Corporativo", parse: parseText },
   { key: "antiguedadMeses", prompt: "Antigüedad del cliente (meses). Ej: 10", parse: parseNumber },
@@ -33,12 +32,12 @@ function init() {
   state.data = {};
   botSay(
 `Hola 👋 Soy el analista de riesgo de clientes de Traxión.
-Te haré unas preguntas y al final te daré:
+Te haré unas preguntas para evaluar la salud de tu cuenta.
 
-✅ Nivel de riesgo
-✅ Señales detectadas (rojas/amarillas)
-✅ Explicación clara
-✅ Acciones recomendadas
+Al finalizar obtendrás:
+✅ Nivel de riesgo (Semáforo)
+✅ Diagnóstico de señales detectadas
+✅ Acciones preventivas sugeridas
 
 Empezamos: ${questions[0].prompt}`
   );
@@ -69,22 +68,24 @@ formEl.addEventListener("submit", (e) => {
     botSay(questions[state.step].prompt);
   } else {
     const result = analyze(state.data);
-    botSay(formatResult(result));
+    botSay(formatResult(result), result.nivel); // Se envía el nivel para el color
     botSay("Si quieres analizar otro cliente, presiona Reiniciar.");
   }
 });
 
-function botSay(text) {
-  addMessage("bot", text);
+function botSay(text, riskLevel = null) {
+  addMessage("bot", text, riskLevel);
 }
 
 function meSay(text) {
   addMessage("me", text);
 }
 
-function addMessage(role, text) {
+function addMessage(role, text, riskLevel = null) {
   const div = document.createElement("div");
-  div.className = `msg ${role}`;
+  // Se añade la clase de riesgo si existe (risk-alto, risk-medio, risk-bajo)
+  const riskClass = riskLevel ? ` risk-${riskLevel.toLowerCase()}` : "";
+  div.className = `msg ${role}${riskClass}`;
   div.textContent = text;
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -107,88 +108,81 @@ function parseText(s) {
   return t.length ? t : null;
 }
 
-/** Core logic: reglas rojas/amarillas + clasificación */
+/** Lógica de Negocio: Detección de señales tempranas */
 function analyze(d) {
   const critical = [];
   const warning = [];
 
-  // Señales críticas (rojas)
-  if (d.ticketsAbiertos >= 2) critical.push({ code: "R1", text: "2 o más tickets abiertos sin resolver" });
-  if (d.retrasosPagoCiclos >= 2) critical.push({ code: "R2", text: "2 o más retrasos de pago recientes" });
-  if (d.quejaCritica === true) critical.push({ code: "R3", text: "Queja crítica o escalada formal" });
-  if (d.variacionVolumen <= -30) critical.push({ code: "R4", text: "Caída ≥30% en uso del servicio" });
-  if (d.tiempoResolucionHrs > 72) critical.push({ code: "R5", text: "Tiempo promedio de resolución >72 hrs" });
+  // Señales críticas (Rojas)
+  if (d.ticketsAbiertos >= 2) critical.push({ code: "R1", text: "Tickets abiertos sin resolución" });
+  if (d.retrasosPagoCiclos >= 2) critical.push({ code: "R2", text: "Inconsistencia recurrente en pagos" });
+  if (d.quejaCritica === true) critical.push({ code: "R3", text: "Escalada formal de inconformidad" });
+  if (d.variacionVolumen <= -30) critical.push({ code: "R4", text: "Caída crítica de volumen operativo" });
+  if (d.tiempoResolucionHrs > 72) critical.push({ code: "R5", text: "SLA de resolución excedido (>72h)" });
 
-  // Señales de advertencia (amarillas)
-  if (Number.isFinite(d.tickets30) && Number.isFinite(d.ticketsMesAnterior) && d.tickets30 > d.ticketsMesAnterior) {
-    warning.push({ code: "A1", text: "Incremento de tickets vs mes anterior" });
-  }
-  if (d.retrasosPagoCiclos === 1) warning.push({ code: "A2", text: "1 retraso de pago reciente" });
-  if (d.variacionVolumen <= -15 && d.variacionVolumen >= -29) warning.push({ code: "A3", text: "Caída de uso entre 15% y 29%" });
-  if (d.satisfaccion >= 6 && d.satisfaccion <= 7) warning.push({ code: "A4", text: "Satisfacción entre 6 y 7" });
-  if (d.antiguedadMeses < 6) warning.push({ code: "A5", text: "Antigüedad menor a 6 meses" });
+  // Señales de advertencia (Amarillas)
+  if (d.tickets30 > d.ticketsMesAnterior) warning.push({ code: "A1", text: "Tendencia incremental en tickets" });
+  if (d.retrasosPagoCiclos === 1) warning.push({ code: "A2", text: "Primer retraso en ciclo de pago" });
+  if (d.variacionVolumen <= -15 && d.variacionVolumen > -30) warning.push({ code: "A3", text: "Reducción moderada de actividad" });
+  if (d.satisfaccion <= 7) warning.push({ code: "A4", text: "Satisfacción en zona de riesgo" });
+  if (d.antiguedadMeses < 6) warning.push({ code: "A5", text: "Curva de aprendizaje inicial (Cliente nuevo)" });
 
-  // Clasificación
   const red = critical.length;
   const yellow = warning.length;
 
   let nivel = "Bajo";
-  if (red === 0 && yellow <= 1) nivel = "Bajo";
-  else if (red >= 2 || (red === 1 && yellow >= 2)) nivel = "Alto";
+  if (red >= 2 || (red === 1 && yellow >= 2)) nivel = "Alto";
   else if (red === 1 || yellow >= 2) nivel = "Medio";
 
   const acciones = getActionsByRisk(nivel);
 
-  // Explicación “de negocio”, sin tecnicismos
   const bullets = [
     ...critical.map(s => `• ${s.text}`),
     ...warning.map(s => `• ${s.text}`)
   ];
+
   const explicacion = bullets.length
-    ? `El cliente presenta señales que suelen correlacionarse con fricción operativa y/o riesgo de abandono:\n${bullets.join("\n")}`
-    : "No se detectaron señales relevantes con la información proporcionada.";
+    ? `Se detectaron comportamientos atípicos en la cuenta:\n${bullets.join("\n")}`
+    : "La cuenta mantiene métricas estables de operación.";
 
   return { nivel, critical, warning, explicacion, acciones };
 }
 
 function getActionsByRisk(nivel) {
   if (nivel === "Bajo") return [
-    "Seguimiento regular",
-    "Reporte mensual de desempeño",
-    "Oferta de optimización de ruta o servicio"
+    "Mantener comunicación estándar",
+    "Enviar reporte de eficiencia mensual",
+    "Explorar oportunidades de crecimiento"
   ];
   if (nivel === "Medio") return [
-    "Contacto proactivo del ejecutivo",
-    "Revisión de SLA y tiempos de atención",
-    "Ajuste preventivo del servicio"
+    "Llamada proactiva del ejecutivo de cuenta",
+    "Auditoría interna de tickets pendientes",
+    "Visita presencial de cortesía"
   ];
   return [
-    "Contacto inmediato personalizado",
-    "Priorizar resolución de tickets",
-    "Propuesta de plan correctivo",
-    "Incentivo comercial o renegociación"
+    "Intervención inmediata de la gerencia",
+    "Plan de choque para resolución de tickets",
+    "Sesión de renegociación o ajuste comercial",
+    "Prioridad 1 en soporte operativo"
   ];
 }
 
 function formatResult(r) {
-  const señales = [
-    ...r.critical.map(s => `${s.code} — ${s.text}`),
-    ...r.warning.map(s => `${s.code} — ${s.text}`)
-  ];
-
-  const señalesTxt = señales.length ? señales.join("\n") : "Ninguna";
+  const señalesTxt = [...r.critical, ...r.warning].length 
+    ? [...r.critical, ...r.warning].map(s => `${s.code}: ${s.text}`).join("\n") 
+    : "Sin alertas";
 
   return (
-`Nivel de riesgo:
-[ ${r.nivel} ]
+`DIAGNÓSTICO DE SALUD:
+Nivel: ${r.nivel.toUpperCase()}
 
-Señales detectadas:
+Alertas:
 ${señalesTxt}
 
-Explicación:
+Análisis Operativo:
 ${r.explicacion}
 
-Acciones recomendadas:
+Acciones Sugeridas:
 ${r.acciones.map(a => `- ${a}`).join("\n")}
 `
   );
