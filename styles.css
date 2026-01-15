@@ -144,3 +144,55 @@ code{
   border-radius: 8px;
   border:1px solid var(--border);
 }
+
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+
+@media (max-width: 768px) {
+  .page {
+    padding: 10px; 
+    gap: 10px;
+  }
+
+  .topbar {
+    padding: 10px 14px;
+  }
+
+  .logo { width: 32px; height: 32px; }
+  .title { font-size: 14px; }
+  .subtitle { font-size: 11px; }
+
+
+  .msg {
+    max-width: 90%; 
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .composer {
+    padding: 10px;
+  }
+
+  .input {
+    font-size: 16px; 
+    padding: 10px;
+  }
+  
+  .send {
+    padding: 10px 12px;
+  }
+}
+
+/* Optimización para dispositivos Phone */
+@media (max-width: 400px) {
+  .brand div:last-child {
+    display: none;
+  }
+  
+  .title { font-size: 13px; }
+  
+  .ghost {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
